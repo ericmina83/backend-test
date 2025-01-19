@@ -7,8 +7,8 @@ const port = 3000;
 
 app.use(express.json());
 
-app.get('/', (req, res) => {
-    res.send('Hello World!')
+app.get('/', passport.authenticate("jwt", { session: false }), (req, res) => {
+    res.json("success");
 });
 
 app.get('/signin', passport.authenticate("local", { session: false }), signinMW);

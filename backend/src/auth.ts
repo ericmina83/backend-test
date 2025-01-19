@@ -1,5 +1,6 @@
 import passport from "passport"
 import { Strategy as LocalStrategy } from "passport-local";
+import { Strategy as JWTStrategy, ExtractJwt } from "passport-jwt";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt"
 import { Request, Response } from "express";
@@ -21,6 +22,15 @@ const localPass = new LocalStrategy((username, password, done) => {
 })
 
 passport.use("local", localPass);
+
+const jwtPass = new JWTStrategy({ jwtFromRequest: ExtractJwt.fromBodyField('token'), secretOrKey: secret }, (payload, done) => {
+    const user = payload as Express.User;
+    UserModel.findById(user._id)
+        .then(user => done(null, user))
+        .catch(err => done(err));
+});
+
+passport.use("jwt", jwtPass);
 
 export const singingMW = (req: Request, res: Response) => {
     const { user } = req;
