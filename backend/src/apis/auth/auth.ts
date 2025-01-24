@@ -1,11 +1,9 @@
 import passport from "passport"
 import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as JWTStrategy, ExtractJwt } from "passport-jwt";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt"
-import { Request, Response } from "express";
 
-import * as UserModel from "./models/user";
+import * as UserModel from "../../models/user";
 
 const secret = "secret";
 
@@ -23,21 +21,11 @@ const localPass = new LocalStrategy((username, password, done) => {
 
 passport.use("local", localPass);
 
-const jwtPass = new JWTStrategy({ jwtFromRequest: ExtractJwt.fromBodyField('token'), secretOrKey: secret }, (payload, done) => {
+const jwtPass = new JWTStrategy({ jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), secretOrKey: secret }, (payload, done) => {
     const user = payload as Express.User;
-    UserModel.findById(user._id)
+    UserModel.findById(user.id)
         .then(user => done(null, user))
         .catch(err => done(err));
 });
 
 passport.use("jwt", jwtPass);
-
-export const singingMW = (req: Request, res: Response) => {
-    const { user } = req;
-    const token = user ? jwt.sign(user, secret) : undefined;
-    if (!token) {
-        res.status(401);
-        return;
-    }
-    res.json(token);
-}
